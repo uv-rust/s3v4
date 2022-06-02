@@ -1,0 +1,27 @@
+[package]
+name = "s3v4"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ugo Varetto <ugovaretto@gmail.com>"]
+license = "BSD-3-Clause"
+rust-version = "1.60"
+description = "Library for signing requests and URLs using AWS' S3 version 4 protocol."
+repository = "https://github.com/uv-rust/s3v4"
+homepage = "https://github.com/uv-rust/s3v4"
+readme = "Readme.md"
+documentation = "https://docs.rs/s3v4"
+keywords = ["s3", "aws", "authentication", "signature", "s3v4"]
+categories = ["authentication", "web-programming", "web-programming:http-client"]
+
+
+[dependencies]
+chrono = "0.4"
+hmac = "0.12"
+sha2 = "0.10"
+url = "2.2"
+urlencoding = "2.1"
+hex = "0.4"
+
+error-chain = "0.12"
+
+
