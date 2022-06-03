@@ -23,4 +23,8 @@ urlencoding = "2.1"
 hex = "0.4"
 error-chain = "0.12"
 
+[dev-dependencies]
+ureq = "2.4"
+
+
 
