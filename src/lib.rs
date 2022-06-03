@@ -1,14 +1,18 @@
 //! S3 v4 signing code
-//! Several functions copied from: https://crates.io/crates/rust-s3
-//! Changes:
-//! 1. removed all calls to `unwrap` and replaced with `chain_err` (error_chain)
-//! 2. removed `anyhow`
-//! 3. replaced `HashMap` with `BTreeMap` to avoid explicit sorting
-//! 4. implemented `signature` function returning both signed header and time-stamp
-//! 5. added functions that only use `host` and `x-amz-*` signed headers
-//! 6. urlencoding is used for encoding uris
-//! 7. added function that returns a pre-signed url
 //! reference: https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html
+
+
+
+// Several function copied from: https://crates.io/crates/rust-s3
+// Notable changes:
+// 1. removed all calls to `unwrap` and replaced with `chain_err` (error_chain)
+// 2. removed `anyhow`
+// 3. replaced `HashMap` with `BTreeMap` to avoid explicit sorting
+// 4. implemented `signature` function returning both signed header and time-stamp
+// 5. added functions that only use `host` and `x-amz-*` signed headers
+// 6. urlencoding is used for encoding uris
+// 7. added function that returns a pre-signed url
+
 use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
 use sha2::{Digest, Sha256};
@@ -180,7 +184,7 @@ pub fn sign(
     let url = Url::parse(url_string).chain_err(|| "error parsing url")?;
     let canonical = canonical_request(method, &url, &headers, payload_hash);
 
-    let string_to_sign = string_to_sign(&date_time, &"us-east-1", &canonical);
+    let string_to_sign = string_to_sign(&date_time, region, &canonical);
 
     let signing_key =
         signing_key(&date_time, secret, &region, service)?;
