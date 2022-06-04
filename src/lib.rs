@@ -183,7 +183,7 @@ pub fn sign(
     service: &str,
 ) -> Result<String> {
     let url = Url::parse(url_string).chain_err(|| "error parsing url")?;
-    let canonical = canonical_request(method, &url, &headers, payload_hash);
+    let canonical = canonical_request(&method.to_uppercase(), &url, &headers, payload_hash);
 
     let string_to_sign = string_to_sign(&date_time, region, &canonical);
 
@@ -219,7 +219,6 @@ pub fn signature(
         } else {
             "".to_string()
         };
-    let method = method.to_uppercase();
     let uri = url.as_str().trim_end_matches('/');
     let mut headers = HeadersMap::new();
     headers.insert("host".to_string(), host_port);
