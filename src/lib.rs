@@ -1,8 +1,6 @@
 //! S3 v4 signing code
 //! reference: https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html
 
-
-
 // Several function copied from: https://crates.io/crates/rust-s3
 // Notable changes:
 // 1. removed all calls to `unwrap` and replaced with `chain_err` (error_chain)
@@ -30,11 +28,10 @@ const SHORT_DATE_FMT: &str = "%Y%m%d";
 #[macro_use]
 extern crate error_chain;
 mod errors {
-    error_chain!{}
+    error_chain! {}
 }
 
 use errors::*;
-
 
 // -----------------------------------------------------------------------------
 /// Generate a canonical query string from the query pairs in the given URL.
@@ -140,13 +137,17 @@ fn signing_key(
     service: &str,
 ) -> Result<Vec<u8>> {
     let secret = format!("AWS4{}", secret_key);
-    let mut date_hmac = HmacSha256::new_from_slice(secret.as_bytes()).chain_err(|| "error hashing secret")?;
+    let mut date_hmac =
+        HmacSha256::new_from_slice(secret.as_bytes()).chain_err(|| "error hashing secret")?;
     date_hmac.update(date_time.format(SHORT_DATE_FMT).to_string().as_bytes());
-    let mut region_hmac = HmacSha256::new_from_slice(&date_hmac.finalize().into_bytes()).chain_err(|| "error hashing date")?;
+    let mut region_hmac = HmacSha256::new_from_slice(&date_hmac.finalize().into_bytes())
+        .chain_err(|| "error hashing date")?;
     region_hmac.update(region.to_string().as_bytes());
-    let mut service_hmac = HmacSha256::new_from_slice(&region_hmac.finalize().into_bytes()).chain_err(|| "error hashing region")?;
+    let mut service_hmac = HmacSha256::new_from_slice(&region_hmac.finalize().into_bytes())
+        .chain_err(|| "error hashing region")?;
     service_hmac.update(service.as_bytes());
-    let mut signing_hmac = HmacSha256::new_from_slice(&service_hmac.finalize().into_bytes()).chain_err(|| "error hashing service")?;
+    let mut signing_hmac = HmacSha256::new_from_slice(&service_hmac.finalize().into_bytes())
+        .chain_err(|| "error hashing service")?;
     signing_hmac.update(b"aws4_request");
     Ok(signing_hmac.finalize().into_bytes().to_vec())
 }
@@ -186,9 +187,9 @@ pub fn sign(
 
     let string_to_sign = string_to_sign(&date_time, region, &canonical);
 
-    let signing_key =
-        signing_key(&date_time, secret, &region, service)?;
-    let mut hmac = Hmac::<Sha256>::new_from_slice(&signing_key).chain_err(|| "error hashing signing key")?;
+    let signing_key = signing_key(&date_time, secret, &region, service)?;
+    let mut hmac =
+        Hmac::<Sha256>::new_from_slice(&signing_key).chain_err(|| "error hashing signing key")?;
     hmac.update(string_to_sign.as_bytes());
     Ok(hex::encode(hmac.finalize().into_bytes()))
 }
@@ -209,7 +210,10 @@ pub fn signature(
     payload_hash: &str,
 ) -> Result<Signature> {
     const LONG_DATE_TIME: &str = "%Y%m%dT%H%M%SZ";
-    let host_port = url.host().chain_err(|| "Error parsing host from url")?.to_string()
+    let host_port = url
+        .host()
+        .chain_err(|| "Error parsing host from url")?
+        .to_string()
         + &if let Some(port) = url.port() {
             format!(":{}", port)
         } else {
@@ -219,10 +223,7 @@ pub fn signature(
     let uri = url.as_str().trim_end_matches('/');
     let mut headers = HeadersMap::new();
     headers.insert("host".to_string(), host_port);
-    headers.insert(
-        "x-amz-content-sha256".to_string(),
-        payload_hash.to_string(),
-    );
+    headers.insert("x-amz-content-sha256".to_string(), payload_hash.to_string());
     let date_time = Utc::now();
     let date_time_string = date_time.format(LONG_DATE_TIME).to_string();
     headers.insert("x-amz-date".to_string(), date_time_string.clone());
@@ -309,9 +310,9 @@ pub fn pre_signed_url(
         payload_hash
     );
     let string_to_sign = string_to_sign(&date_time, &region, &canonical_request);
-    let signing_key =
-        signing_key(&date_time, secret, region, service)?;
-    let mut hmac = Hmac::<Sha256>::new_from_slice(&signing_key).chain_err(|| "Error hashing signing key")?;
+    let signing_key = signing_key(&date_time, secret, region, service)?;
+    let mut hmac =
+        Hmac::<Sha256>::new_from_slice(&signing_key).chain_err(|| "Error hashing signing key")?;
     hmac.update(string_to_sign.as_bytes());
     let signature = hex::encode(hmac.finalize().into_bytes());
     let request_url =
@@ -340,10 +341,7 @@ mod tests {
         let service = "s3";
         let mut headers = HeadersMap::new();
         headers.insert("host".to_string(), "aws.com".to_string());
-        headers.insert(
-            "x-amz-content-sha256".to_string(),
-            payload_hash.to_string(),
-        );
+        headers.insert("x-amz-content-sha256".to_string(), payload_hash.to_string());
         let signature = sign(
             method,
             payload_hash,

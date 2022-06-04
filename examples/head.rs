@@ -39,7 +39,8 @@ fn head(req_data: &RequestData) -> Result<String, String> {
         &req_data.region,
         &"s3",
         "UNSIGNED-PAYLOAD",
-    ).map_err(|err| format!("{:?}", err))?;
+    )
+    .map_err(|err| format!("{:?}", err))?;
     let agent = AgentBuilder::new().build();
     let response = agent
         .get(&url.to_string())

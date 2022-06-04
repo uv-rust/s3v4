@@ -7,8 +7,8 @@ struct RequestData {
     endpoint: url::Url,
     access: String,
     secret: String,
-    bucket: String, //use Option
-    key: String,    //use Option
+    bucket: String,
+    key: String,
     region: String,
 }
 fn main() -> Result<(), String> {
@@ -61,7 +61,8 @@ fn download_object(req_data: &RequestData, filename: &str) -> Result<u64, String
         &req_data.region,
         &"s3",
         "UNSIGNED-PAYLOAD",
-    ).map_err(|err| format!("{:?}", err))?;
+    )
+    .map_err(|err| format!("{:?}", err))?;
     let agent = AgentBuilder::new().build();
     let response = agent
         .get(&uri)
