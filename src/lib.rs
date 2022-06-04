@@ -302,7 +302,7 @@ pub fn pre_signed_url(
     let signed_headers = "host";
     let canonical_request = format!(
         "{}\n{}\n{}\n{}\n\n{}\n{}",
-        method,
+        method.to_uppercase(),
         canonical_resource,
         canonical_query_string,
         canonical_headers,
