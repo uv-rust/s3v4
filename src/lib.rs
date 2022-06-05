@@ -129,7 +129,7 @@ use hmac::{Hmac, Mac};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use url::Url;
-pub use urlencoding::encode as url_encode;
+use urlencoding::encode as url_encode;
 
 type HeadersMap = BTreeMap<String, String>;
 
@@ -267,7 +267,7 @@ fn signing_key(
 
 // -----------------------------------------------------------------------------
 /// Generate the AWS authorization header.
-pub fn authorization_header(
+fn authorization_header(
     access_key: &str,
     date_time: &DateTime<Utc>,
     region: &str,
@@ -285,7 +285,7 @@ pub fn authorization_header(
 }
 
 // -----------------------------------------------------------------------------
-pub fn sign(
+fn sign(
     method: &str,
     payload_hash: &str,
     url_string: &str,
@@ -307,7 +307,7 @@ pub fn sign(
     Ok(hex::encode(hmac.finalize().into_bytes()))
 }
 // -----------------------------------------------------------------------------
-/// Struct containing authorisation header and timestamp.
+/// Struct containing authorisation header and timestamp. Returned by `sign_request`.
 pub struct Signature {
     pub auth_header: String,
     pub date_time: String,
