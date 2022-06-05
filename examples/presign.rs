@@ -1,16 +1,37 @@
+//! Pre-sign URLs for S3 storage requests.
+//! Usage:
+//! 
+//! ```shell
+//! cargo run --example presign -- <endpoint URL> <access> <secret> <method> \
+//!    <expiration in seconds> <region> ["YYYY-MM-DDTHH:MM:SSZ" (timestamp)]
+//! ```
+//!  
+//! ## Examples
+//! ### HEAD
+//! ```shell
+//! cargo run --example presign https://play.min.io/bucket/key $S3_ACCESS $S3_SECRET HEAD 10000 "us-east-1"
+//! curl -I <url>
+//! ```
+//! ### GET
+//! ```shell
+//! cargo run --example presign https://play.min.io/bucket/key $S3_ACCESS $S3_SECRET GET 10000 "us-east-1"
+//! curl <url>
+//! ```
+//! ### PUT
+//! ```shell
+//! cargo run --example presign https://play.min.io/bucket/key $S3_ACCESS $S3_SECRET PUT 10000 "us-east-1"
+//! curl --upload-file <file> <url>
+//! ```
+//! ### PUT with metadata
+//! ```shell
+//! cargo run --example presign https://play.min.io/bucket/key $S3_ACCESS $S3_SECRET PUT 10000 "us-east-1"
+//! curl --upload-file <file> <url> -H "x-amz-meta-foo: bar"
+//! ```
+//! ### GET with timestamp
+//! ```shell
+//! cargo run --example presign https://play.min.io/bucket/key $S3_ACCESS $S3_SECRET GET 10000 "us-east-1" "2022-06-14T00:00:00Z"
+//! ```
 use url;
-//HEAD
-//cargo run --example presign <endpoint/<bucket/key>> <access> <secret> HEAD 10000 "us-east-1"
-//curl -I <url>
-//GET
-//cargo run --example presign <endpoint/<bucket/key>> <access> <secret> GET 10000 "us-east-1"
-//curl <url>
-//PUT
-//cargo run --example presign <endpoint/<bucket/key>> <access> <secret> PUT 10000 "us-east-1"
-//curl --upload-file <file> <url>
-//PUT with metadata
-//cargo run --example presign <endpoint/<bucket/key>> <access> <secret> PUT 10000 "us-east-1"
-//curl --upload-file <file> <url> -H "x-amz-meta-foo: bar"
 fn main() -> Result<(), String> {
     let url =
         url::Url::parse(&std::env::args().nth(1).expect("missing url")).expect("malformed URL");

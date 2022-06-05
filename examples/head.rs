@@ -1,3 +1,13 @@
+//! Retrieve information about a bucket or object.
+//! Bucket and object name must be added to the S3 service endpoint. 
+//! This example uses the `ureq` crate to make a `HEAD` request, printing the response to `stdout`.
+//! Credentials are read from the environment variables S3_ACCESS and S3_SECRET.
+//! Bucket and object names must be included in the endpoint URL.
+//! Usage:
+//! ```shell
+//! $ S3_ACCESS=<access> S3_SECRET=<secret> cargo run --example head \
+//!    -- <endpoint URL> <region>
+//! ```
 use ureq::AgentBuilder;
 use url;
 
@@ -12,10 +22,7 @@ fn main() -> Result<(), String> {
         url::Url::parse(&std::env::args().nth(1).expect("missing url")).expect("Malformed URL");
     let access = std::env::var("S3_ACCESS").map_err(|err| err.to_string())?;
     let secret = std::env::var("S3_SECRET").map_err(|err| err.to_string())?;
-    let region = match std::env::args().nth(5) {
-        Some(r) => r,
-        _ => "us-east-1".to_string(),
-    };
+    let region = std::env::args().nth(2).expect("missing region");
     let rd = RequestData {
         endpoint,
         access,
@@ -30,7 +37,7 @@ fn main() -> Result<(), String> {
 //------------------------------------------------------------------------------
 fn head(req_data: &RequestData) -> Result<String, String> {
     let url = &req_data.endpoint;
-    let method = "GET";
+    let method = "HEAD";
     let signature = s3v4::signature(
         url,
         method,
@@ -43,7 +50,7 @@ fn head(req_data: &RequestData) -> Result<String, String> {
     .map_err(|err| format!("{:?}", err))?;
     let agent = AgentBuilder::new().build();
     let response = agent
-        .get(&url.to_string())
+        .head(&url.to_string())
         .set("x-amz-content-sha256", "UNSIGNED-PAYLOAD")
         .set("x-amz-date", &signature.date_time)
         .set("authorization", &signature.auth_header)
@@ -52,5 +59,9 @@ fn head(req_data: &RequestData) -> Result<String, String> {
             let r = err.into_response().unwrap();
             format!("{}: {}", r.status(), r.into_string().unwrap())
         })?;
-    Ok(response.into_string().map_err(|err| format!("{:?}", err))?)
+    let mut headers = String::new();
+    for h in response.headers_names() {
+        headers.push_str(&format!("{}: {}\n", h, response.header(&h).unwrap()));
+    }
+    Ok(headers)
 }

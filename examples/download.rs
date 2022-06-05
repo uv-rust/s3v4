@@ -1,3 +1,11 @@
+//! Download an object from S3 storage.
+//! This example uses the `ureq` crate to make the request, saving the response into a file.
+//! Credentials are read from the environment variables S3_ACCESS and S3_SECRET.
+//! Usage:
+//! ```shell
+//! $ S3_ACCESS=<access> S3_SECRET=<secret> cargo run --example download \
+//!    -- <endpoint URL> <file> <bucket> <key>
+//! ```
 use std::fs::File;
 use std::time::Instant;
 use ureq::AgentBuilder;
@@ -11,6 +19,7 @@ struct RequestData {
     key: String,
     region: String,
 }
+
 fn main() -> Result<(), String> {
     let file_name = std::env::args().nth(1).expect("missing file name");
     let endpoint =
@@ -43,6 +52,7 @@ fn main() -> Result<(), String> {
 }
 
 //------------------------------------------------------------------------------
+/// Download object from S3 storage and save data to file.
 fn download_object(req_data: &RequestData, filename: &str) -> Result<u64, String> {
     let uri = format!(
         "{}{}/{}",
@@ -74,13 +84,9 @@ fn download_object(req_data: &RequestData, filename: &str) -> Result<u64, String
             let r = err.into_response().unwrap();
             format!("{}: {}", r.status(), r.into_string().unwrap())
         })?;
-    let len = response
-        .header("Content-Length")
-        .ok_or("No Content-Length header in response")?
-        .parse::<u64>()
-        .map_err(|err| err.to_string())?;
     let mut r = response.into_reader();
     let mut f = File::create(filename).map_err(|err| err.to_string())?;
     std::io::copy(&mut r, &mut f).map_err(|err| err.to_string())?;
+    let len = f.metadata().map_err(|err| err.to_string())?.len();
     Ok(len)
 }

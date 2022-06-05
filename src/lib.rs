@@ -1,5 +1,5 @@
 //! S3 v4 signing code
-//! reference: https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html
+//! [reference](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html)
 
 // Several function copied from: https://crates.io/crates/rust-s3
 // Notable changes:
@@ -8,7 +8,7 @@
 // 3. replaced `HashMap` with `BTreeMap` to avoid explicit sorting
 // 4. implemented `signature` function returning both signed header and time-stamp
 // 5. added functions that only use `host` and `x-amz-*` signed headers
-// 6. urlencoding is used for encoding uris
+// 6. `urlencoding` crate is used for encoding uris
 // 7. added function that returns a pre-signed url
 
 use chrono::{DateTime, Utc};
@@ -50,7 +50,7 @@ fn canonical_query_string(uri: &Url) -> String {
 }
 
 // -----------------------------------------------------------------------------
-/// Generate a canonical header string using only x-amz-, host and content-lrngth headers.
+/// Generate a canonical header string using only x-amz-, host and content-length headers.
 fn canonical_header_string(headers: &HeadersMap) -> String {
     let key_values = headers
         .iter()
@@ -194,12 +194,13 @@ pub fn sign(
     Ok(hex::encode(hmac.finalize().into_bytes()))
 }
 // -----------------------------------------------------------------------------
+/// Struct containing authorisation header and timestamp.
 pub struct Signature {
     pub auth_header: String,
     pub date_time: String,
 }
 
-/// Return signed header and time-stamp.
+/// Return signed header and timestamp.
 pub fn signature(
     url: &url::Url,
     method: &str,

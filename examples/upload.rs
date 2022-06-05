@@ -1,6 +1,23 @@
+//! Upload file to S3 object storage.
+//! This example uses the `ureq` crate to make the request, reading the data from a file.
+//! Credentials are read from the environment variables S3_ACCESS and S3_SECRET.
+//! Note that normally it is not possible to upload a file larger than 1GiB, without
+//! resorting to multipart uploads.
+//! Usage:
+//! ```shell
+//! $ S3_ACCESS=<access> S3_SECRET=<secret> cargo run --example upload \
+//!    -- <endpoint URL> <file> <bucket> <key>
+//! ```
+//! It is possible to add headers to the request, by specifying a semicolon-separated list of
+//! `key:value` pairs as the last argument.
+//! E.g., adding metadata
+//! ```shell
+//! $ S3_ACCESS=<access> S3_SECRET=<secret> cargo run --example upload \
+//!    -- <endpoint URL> <file> <bucket> <key> "x-amz-meta-foo:bar"
+//! ```
 use std::fs::File;
 use std::time::Instant;
-use ureq::{AgentBuilder};
+use ureq::AgentBuilder;
 use url;
 type HeaderMap = std::collections::HashMap<String, String>;
 
@@ -31,11 +48,7 @@ fn main() -> Result<(), String> {
     let len = std::fs::metadata(&file_name)
         .map_err(|err| err.to_string())?
         .len();
-    if len > 0x40000000 {
-        // 1GB
-        return Err("File too large".to_string());
-    }
-    let mut file = File::open(&file_name).map_err(|err| err.to_string())?;
+    let file = File::open(&file_name).map_err(|err| err.to_string())?;
     let start = Instant::now();
     let rd = RequestData {
         endpoint,
@@ -45,11 +58,7 @@ fn main() -> Result<(), String> {
         key,
         region,
     };
-    let mut buffer = vec![0_u8; len as usize];
-    use std::io::Read;
-    file.read_exact(&mut buffer)
-        .map_err(|err| err.to_string())?;
-    upload_object(&buffer, &rd, &headers)?;
+    upload_object(file, len, &rd, &headers)?;
     let elapsed = start.elapsed().as_secs_f64();
     println!(
         "{:.2} s {:.2} MiB/s",
@@ -60,12 +69,15 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
+//------------------------------------------------------------------------------
+/// Parse headers from string.
+/// Headers are formatted as "key:value" pairs, separated by the `;` character.
 fn parse_headers(h: &str) -> HeaderMap {
     let mut headers = HeaderMap::new();
     h.split(';').into_iter().for_each(|s| {
         let (k, v) = (
-            s.split(':').nth(0).expect("Missing header"),
-            s.split(':').nth(1).expect("Missing header value"),
+            s.split(':').nth(0).expect("Missing header").trim(),
+            s.split(':').nth(1).expect("Missing header value").trim(),
         );
         if !k.is_empty() && !v.is_empty() {
             headers.insert(k.to_string(), v.to_string());
@@ -75,7 +87,13 @@ fn parse_headers(h: &str) -> HeaderMap {
 }
 
 //------------------------------------------------------------------------------
-fn upload_object(buffer: &[u8], req_data: &RequestData, headers: &HeaderMap) -> Result<(), String> {
+/// Upload data from file to S3 object.
+fn upload_object(
+    data: impl std::io::Read,
+    len: u64,
+    req_data: &RequestData,
+    headers: &HeaderMap,
+) -> Result<(), String> {
     let uri = format!(
         "{}{}/{}?",
         req_data.endpoint.as_str(),
@@ -101,11 +119,11 @@ fn upload_object(buffer: &[u8], req_data: &RequestData, headers: &HeaderMap) -> 
         .set("x-amz-content-sha256", "UNSIGNED-PAYLOAD")
         .set("x-amz-date", &signature.date_time)
         .set("authorization", &signature.auth_header)
-        .set("content-length", &buffer.len().to_string());
+        .set("content-length", &len.to_string());
     for (k, v) in headers {
         req = req.set(k, v);
     }
-    let response = req.send_bytes(buffer).map_err(|err| format!("{:?}", err))?;
+    let response = req.send(data).map_err(|err| format!("{:?}", err))?;
     if response.status() >= 300 {
         let status = response.status();
         let body = response.into_string().map_err(|err| err.to_string())?;
