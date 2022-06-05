@@ -11,7 +11,7 @@ homepage = "https://github.com/uv-rust/s3v4"
 readme = "Readme.md"
 documentation = "https://docs.rs/s3v4"
 keywords = ["s3", "aws", "authentication", "signature", "web"]
-categories = ["authentication", "web-programming", "web-programming:http-client"]
+categories = ["authentication", "web-programming", "web-programming::http-client"]
 
 
 [dependencies]
