@@ -1,4 +1,4 @@
- # s3v4: A library for signing S3 requests and pre-signing URLs.
+ # s3v4: A crate for signing S3 requests and pre-signing URLs
  
  [reference](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html)
 
@@ -46,7 +46,7 @@
         .set("x-amz-date", &signature.date_time)
         .set("authorization", &signature.auth_header)
  ```
- ## URL pre-sign
+ ## Generting a pre-signed URL
 
  ```rust
      let pre_signed_url = s3v4::pre_signed_url(
