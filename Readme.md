@@ -46,7 +46,7 @@
         .set("x-amz-date", &signature.date_time)
         .set("authorization", &signature.auth_header)
  ```
- ## Presigning a URL
+ ## URL pre-sign
 
  ```rust
      let pre_signed_url = s3v4::pre_signed_url(
@@ -62,8 +62,9 @@
      )
      .map_err(|err| format!("{:?}", err))?;
  ```
- #### Full example
- The following code can be used as is to sign to generate a presigned URL. 
+
+ The following code can be used as is to generate a presigned URL. 
+
  ```rust
  use url;
  fn main() -> Result<(), String> {
@@ -112,3 +113,9 @@
  * `-I` for `HEAD` requests
  * --file-upload for `PUT` requests
  * nothing for `GET` requests
+
+## Upload
+
+Upload example using the [::ureq] crate.
+
+
