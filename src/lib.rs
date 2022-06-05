@@ -3,13 +3,13 @@
 //! [reference](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html)
 //!
 //! This crate provides a [signature] function that can be used to sign a request to an S3 endpoint
-//! and a [pre_signed_url] function that can be used to generate a presigned URL.
+//! and a [pre_signed_url] function for generating a presigned URL.
 //! 
-//! Examples are provided showing how to upload and download objects as well as as
+//! Examples are provided showing how to upload and download objects as well as
 //! how to generate a presigned URL and retrieve information about objects and buckets.
 //! 
 //! Errors are internally managed through the [::error_chain] crate and can be converted to a `String`
-//! or accessed through the `description`, `display_chain` or `backtrace` methods in case
+//! or accessed through the `description`, `display_chain` or `backtrace` method in case
 //! a full backtrace is needed.
 //! 
 //! # Examples
@@ -62,7 +62,7 @@
 //!     )
 //!     .map_err(|err| format!("{:?}", err))?;
 //! ```
-//! #### Full example
+//!
 //! The following code can be used as is to generate a presigned URL. 
 //! ```no_run
 //! use url;
