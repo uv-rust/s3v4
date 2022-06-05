@@ -39,7 +39,7 @@ fn main() -> Result<(), String> {
 fn head(req_data: &RequestData) -> Result<String, String> {
     let url = &req_data.endpoint;
     let method = "HEAD";
-    let sig = s3v4::signature(
+    let signature = s3v4::signature(
         url,
         method,
         &req_data.access,
@@ -47,13 +47,7 @@ fn head(req_data: &RequestData) -> Result<String, String> {
         &req_data.region,
         &"s3",
         "UNSIGNED-PAYLOAD",
-    );
-    let signature = match sig {
-        Err(err) => {
-            return Err(format!("Signature error: {}", err.display_chain()));
-        }
-        Ok(s) => s,
-    };
+    ).map_err(|err| format!("Signature error: {}", err.display_chain()))?;
     let agent = AgentBuilder::new().build();
     let response = agent
         .head(&url.to_string())
