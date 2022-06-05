@@ -9,6 +9,9 @@
  converted to a `String` or accessed through the `description` method or `display_chain` 
  and `backtrace` methods in case a full backtrace is needed.
 
+ Examples showing how to upload and download data with signed headers or pre-signed
+ URLs are provided in the `./examples` folder.
+
  # Examples
  
  ## Signing a request
