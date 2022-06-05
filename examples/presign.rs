@@ -1,6 +1,6 @@
 //! Pre-sign URLs for S3 storage requests.
 //! Usage:
-//! 
+//!
 //! ```shell
 //! cargo run --example presign -- <endpoint URL> <access> <secret> <method> \
 //!    <expiration in seconds> <region> ["YYYY-MM-DDTHH:MM:SSZ" (timestamp)]

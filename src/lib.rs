@@ -1,5 +1,16 @@
 //! S3 v4 signing code
 //! [reference](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html)
+//!
+//! This crate provides an `s3v4::signature` function that can be used to sign a request to an S3 endpoint
+//! and an `s3v4::presign` function that can be used to generate a presigned URL.
+//! Examples are provided showing how to upload and download objects as well as as
+//! how to generate a presigned URL and retrieve information about objects and buckets.
+//! Errors are internally managed through the `error_chain` crate and can be converted to a `String`
+//! or accessed through the `description`, `display_chain` or `backtrace` methods in case
+//! a full backtrace is needed.
+//!
+//! # Examples
+//! Signing a request is
 
 // Several function copied from: https://crates.io/crates/rust-s3
 // Notable changes:
@@ -31,7 +42,7 @@ mod errors {
     error_chain! {}
 }
 
-use errors::*;
+pub use errors::*;
 
 // -----------------------------------------------------------------------------
 /// Generate a canonical query string from the query pairs in the given URL.
